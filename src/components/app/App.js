@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useState } from "react";
 
 import AppHeader from "../appHeader/AppHeader";
 import RandomChar from "../randomChar/RandomChar";
@@ -7,33 +7,27 @@ import CharInfo from "../charInfo/CharInfo";
 
 import decoration from '../../resources/img/vision.png';
 
-class App extends Component {
+const App = () => {
 
-    state = {
-        selectedChar: null
+    const [selectedChar, setSelectedChar] = useState(null);
+
+    const updateSelectedChar = (id) => {
+        setSelectedChar(id);
     }
 
-    updateSelectedChar = (id) => {
-        this.setState({
-            selectedChar: id
-        })
-    }
-
-    render() {
-        return (
-            <div className="app">
-                <AppHeader />
-                <main>
-                    <RandomChar />
-                    <div className="char__content">
-                        <CharList onCharSelected={this.updateSelectedChar} />
-                        <CharInfo charId={this.state.selectedChar} />
-                    </div>
-                    <img className="bg-decoration" src={decoration} alt="vision" />
-                </main>
-            </div>
-        )
-    }
+    return (
+        <div className="app">
+            <AppHeader />
+            <main>
+                <RandomChar />
+                <div className="char__content">
+                    <CharList onCharSelected={updateSelectedChar} />
+                    <CharInfo charId={selectedChar} />
+                </div>
+                <img className="bg-decoration" src={decoration} alt="vision" />
+            </main>
+        </div>
+    )
 }
 
 export default App;
