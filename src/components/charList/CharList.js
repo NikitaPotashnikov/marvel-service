@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Transition } from 'react-transition-group';
 
 import Spiner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
@@ -13,9 +14,23 @@ const CharList = (props) => {
     const [offset, setOffset] = useState(210);
     const [charEnded, setCharEnded] = useState(210);
 
-    const { loading, error, getAllCharacters } = useMarvelService();
+    const { loading, error, show, setShow, getAllCharacters } = useMarvelService();
 
     const charRef = useRef([]);
+
+
+    const duration = 300;
+    const defaultStyle = {
+        transition: `opacity ${duration}ms ease-in-out`,
+        opacity: 0,
+    }
+    const transitionStyles = {
+        entering: { opacity: 1 },
+        entered: { opacity: 1 },
+        exiting: { opacity: 0 },
+        exited: { opacity: 0 },
+    };
+
 
     useEffect(() => {
         onRequest(offset, true);
@@ -23,6 +38,7 @@ const CharList = (props) => {
 
     const onRequest = (offset, initial) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true);
+        setShow(false);
         getAllCharacters(offset)
             .then(onCharListLoaded)
     }
@@ -37,6 +53,7 @@ const CharList = (props) => {
         setNewItemLoading(false);
         setOffset(offset => offset + 9);
         setCharEnded(ended);
+        setShow(true);
     }
 
     const focusOnItem = (index) => {
