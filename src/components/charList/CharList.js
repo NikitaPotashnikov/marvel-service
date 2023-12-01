@@ -1,11 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
-import { Transition } from 'react-transition-group';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
-import Spiner from '../spinner/Spinner';
+import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import useMarvelService from '../../services/MarvelService';
 
 import './charList.scss';
+
+const setContent = (process, Component, newItemLoading) => {
+    switch (process) {
+        case 'waiting':
+            return <Spinner />;
+        case 'loading':
+            return newItemLoading ? <Component /> : <Spinner />;
+        case 'confirmed':
+            return <Component />;
+        case 'error':
+            return <ErrorMessage />;
+        default:
+            throw new Error('Unexpected process state');
+    }
+}
 
 const CharList = (props) => {
 
@@ -14,33 +28,20 @@ const CharList = (props) => {
     const [offset, setOffset] = useState(210);
     const [charEnded, setCharEnded] = useState(210);
 
-    const { loading, error, show, setShow, getAllCharacters } = useMarvelService();
+    const { getAllCharacters, process, setProcess } = useMarvelService();
 
     const charRef = useRef([]);
 
-
-    const duration = 300;
-    const defaultStyle = {
-        transition: `opacity ${duration}ms ease-in-out`,
-        opacity: 0,
-    }
-    const transitionStyles = {
-        entering: { opacity: 1 },
-        entered: { opacity: 1 },
-        exiting: { opacity: 0 },
-        exited: { opacity: 0 },
-    };
-
-
     useEffect(() => {
         onRequest(offset, true);
+        // eslint-disable-next-line
     }, [])
 
     const onRequest = (offset, initial) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true);
-        setShow(false);
         getAllCharacters(offset)
             .then(onCharListLoaded)
+            .then(() => setProcess('confirmed'))
     }
 
     const onCharListLoaded = (newCharList) => {
@@ -53,7 +54,6 @@ const CharList = (props) => {
         setNewItemLoading(false);
         setOffset(offset => offset + 9);
         setCharEnded(ended);
-        setShow(true);
     }
 
     const focusOnItem = (index) => {
@@ -93,16 +93,14 @@ const CharList = (props) => {
         )
     }
 
-    const items = renderItem(charList);
-
-    const errorMessage = error ? <ErrorMessage /> : null;
-    const spinner = loading && !newItemLoading ? <Spiner /> : null;
+    const elements = useMemo(() => {
+        return setContent(process, () => renderItem(charList), newItemLoading);
+        // eslint-disable-next-line
+    }, [process])
 
     return (
         <div className="char__list">
-            {errorMessage}
-            {spinner}
-            {items}
+            {elements}
             <button
                 className="button button__main button__long"
                 disabled={newItemLoading}

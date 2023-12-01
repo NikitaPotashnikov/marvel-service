@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import Spinner from '../spinner/Spinner';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+import setContent from '../../utils/setContent';
 import useMarvelService from '../../services/MarvelService';
 
 import './randomChar.scss';
@@ -10,11 +9,12 @@ import mjolnir from '../../resources/img/mjolnir.png';
 const RandomChar = () => {
 
     const [char, setChar] = useState({});
-    const { loading, error, getCharacter, clearError } = useMarvelService();
+    const { getCharacter, clearError, process, setProcess } = useMarvelService();
 
     useEffect(() => {
         updateChar();
         // this.timerId = setInterval(this.updateChar, 15000);
+        // eslint-disable-next-line
     }, [])
 
     const onCharLoaded = (char) => {
@@ -26,28 +26,23 @@ const RandomChar = () => {
         const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
         getCharacter(id)
             .then(onCharLoaded)
+            .then(() => setProcess('confirmed'))
     }
 
-    const updateDescription = (desc) => {
-        if (desc) {
-            if (desc.length > 170) {
-                return desc.slice(0, 160) + '...';
-            }
-            return desc;
-        } else {
-            return 'The character has no description';
-        }
-    }
-
-    const errorMessage = error ? <ErrorMessage /> : null;
-    const spinner = loading ? <Spinner /> : null;
-    const content = !(loading || error) ? <View char={char} updateDescription={updateDescription} /> : null;
+    // const updateDescription = (desc) => {
+    //     if (desc) {
+    //         if (desc.length > 170) {
+    //             return desc.slice(0, 160) + '...';
+    //         }
+    //         return desc;
+    //     } else {
+    //         return 'The character has no description';
+    //     }
+    // }
 
     return (
         <div className="randomchar">
-            {errorMessage}
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
             <div className="randomchar__static">
                 <p className="randomchar__title">
                     Random character for today!<br />
@@ -65,9 +60,8 @@ const RandomChar = () => {
     )
 }
 
-const View = ({ char, updateDescription }) => {
-    const { name, description, thumbnail, homepage, wiki } = char;
-    const updDescription = updateDescription(description);
+const View = ({ data }) => {
+    const { name, description, thumbnail, homepage, wiki } = data;
     let imgStyle = { 'objectFit': 'cover' }
     if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
         imgStyle = { 'objectFit': 'contain' };
@@ -77,7 +71,7 @@ const View = ({ char, updateDescription }) => {
             <img style={imgStyle} src={thumbnail} alt="Random character" className="randomchar__img" />
             <div className="randomchar__info">
                 <p className="randomchar__name">{name}</p>
-                <p className="randomchar__descr">{updDescription}</p>
+                <p className="randomchar__descr">{description}</p>
                 <div className="randomchar__btns">
                     <a href={homepage} className="button button__main">
                         <div className="inner">homepage</div>
